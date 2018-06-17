@@ -2,42 +2,31 @@ import Board
 import Standard
 import Control.Monad
 import Klein
+import Standard
+import Ai
 
-main :: IO ()
-main = let filt = getFiltered 5
-           valids = fmap checkNumbers filt
-           masked = [board | (bool,board) <- zip valids filt, bool]
-           printable =  concat [printBoard f ++ "\n" | f <- masked]
-           numValid = length $ filter id valids
-       in
-       do
-         print valids
-         print (length filt)
-         putStrLn printable
-         print numValid
+sai = ai standardRule :: Board -> Move -> (Int,Int)
 
-getFiltered :: Int -> [Board]
-getFiltered x = getStalemate (x,x) (klein x x)
+main::IO ()
+main = loop (emptyBoard 3)
 
-getStalemate :: (Int,Int) -> Rule -> [Board]
-getStalemate (x,y) r = let boards = generateAllBoards (x,y)
-                           valid = [b | (check,b) <- zip (fmap checkNumbers boards) boards, check]
-                       in filter (not . r) valid
+continue::Rule -> Board -> Bool
+continue rule board = (not won) && (not full)
+  where
+    won = rule board
+    full = (length (validMoves board)) == 0
 
-generateAllBoards :: (Int,Int) -> [Board]
-generateAllBoards (x,y) = [chunk x list | list <- getLists (x*y)]
 
-getLists :: Int -> [[Move]] --Generates all lists of n moves
-getLists n = replicateM n [X,O]
 
-chunk :: Int -> [a] -> [[a]]
-chunk _ [] = []
-chunk n l = take n l : chunk n (drop n l)
-
-checkNumbers :: Board -> Bool
-checkNumbers b = let c = count X b - count O b
-                 in
-                 c == 1 || c == -1 || c == 0
-                 where
-                 count :: Move -> Board -> Int
-                 count m = foldr ((+) . length . filter (== m)) 0
+loop :: Board -> IO ()
+loop board1 = do
+  putStrLn (printBoard board1)
+  line <- getLine
+  let s' = fmap read $ words line
+  let x = s' !! 0
+  let y = s' !! 1
+  let board2 = move X (x,y) board1
+  let board3 = if (continue standardRule board2) then (move O (sai board2 O) board2) else board2
+  let keepPlaying = (continue standardRule board3)
+  let s = if keepPlaying then loop board3 else putStrLn ((printBoard board3) ++ "good game")
+  s
