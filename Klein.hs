@@ -3,9 +3,6 @@ module Klein(klein) where
 import Board
 import Data.List
 
-
-
-
 step :: Int -> Int -> (Int,Int) -> (Int,Int)
 -- dim dir start
 step dim 0 (x,y)

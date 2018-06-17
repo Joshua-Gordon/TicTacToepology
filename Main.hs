@@ -1,6 +1,7 @@
 import Board
 import Standard
 import Control.Monad
+import Klein
 
 main :: IO ()
 main = let x = generateAllBoards (2,2)
